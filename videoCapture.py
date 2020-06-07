@@ -21,15 +21,25 @@ while(cap.isOpened()):
     
     frame = face.boxFrame(frame)
     frame = face.boxHand(frame)
-    frame = face.boxHand2(frame)
-    frame = cv2.resize(frame,None,fx=2,fy=2)
+    frame= face.boxHand2(frame)
+    #frame = face.noise(frame)
+    frame = cv2.resize(frame,None,fx=.5,fy=.5)
+    
+    """
+    for i in range(0,frame.shape[0]):
+        for k in range(0, frame.shape[1]):
+            frame[i,k] = frame[i,k]+randint(0,200)
+    """
+    if face.handFaceIntersection(frame):
+        print("INTERSECTION")
     
     if(face.detectHandBox(frame) and face.detectFace(frame)):
         intensity +=0.1
-        frame = face.intensify(frame,intensity)
+        #frame = face.intensify(frame,intensity)
     elif(face.detectHandBox2(frame) and face.detectFace(frame)):
         size+=2
-        frame = face.smoothing(frame,size)
+        frame = frame * np.full_like(frame,20)
+        #frame = face.smoothing(frame,size)
     else:
         size = 3
         intensity = 1
