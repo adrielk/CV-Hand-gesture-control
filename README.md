@@ -7,3 +7,8 @@ You need to download OpenCV packages for python. You can run **pip install openc
 
 # To do:
 Detect when user touches his/her face, keeping a record of number of times face is touched and image snap shots of when face is touched. Can help develop good hygienic habits.
+
+# Sources:
+Credit to the following repositories for pretrained Haar Cascade classifiers:
+https://github.com/parulnith/Face-Detection-in-Python-using-OpenCV/tree/master/data/haarcascades
+https://github.com/Aravindlivewire/Opencv/blob/master/haarcascade/aGest.xml
