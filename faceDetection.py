@@ -194,7 +194,6 @@ def bounded(bounded, boundary1, boundary2):
     boundary1Y = boundary1[1]
     boundary2Y = boundary2[1]
     
-    
     if(boundedX<boundary2X and boundedX>boundary1X and boundedY>boundary1Y and boundedY<boundary2Y):
         return True
     
@@ -209,9 +208,79 @@ def fillIntersection(img, origin, offsets):
     cv2.rectangle(img,origin,(originX+offsetX,originY+offsetY),(0,0,255), -1)
     return img
     
+def checkIntersectionAndFill(img_raw,faceBounds,fistBounds, rev):
+    
+    faceX = faceBounds[0][0]
+    faceX2 = faceBounds[1][0]
+    faceY = faceBounds[0][1]
+    faceY2 = faceBounds[1][1]
+    rev = -1 if rev == True else 1
+    
+    if bounded(fistBounds[0], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[0]
+        xLength = abs(int(fB[0])-faceX2)*rev
+        yLength = abs(int(fB[1])-faceY2)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        return True
+    elif bounded(fistBounds[1], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[1]
+        xLength = -abs(int(fB[0])-faceX)*rev
+        yLength = -abs(int(fB[1])-faceY)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        return True
+    elif bounded(fistBounds[2], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[2]
+        xLength = abs(int(fB[0])-faceX2)*rev
+        yLength = -abs(int(fB[1])-faceY)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        return True
+    elif bounded(fistBounds[3], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[3]
+        xLength = -abs(int(fB[0])-faceX)*rev
+        yLength = abs(int(fB[1])-faceY2)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        return True
+    return False
+
+def mirrorImage(img):
+    frame = cv2.flip(img,0)
+    frame = cv2.rotate(frame,0)
+    frame = cv2.rotate(frame,0)
+    return frame
+
+
+def drawBox(img_raw, face_rects, dotC, rectC):
+    for(x,y,w,h)in face_rects:
+        point1 = (x,y)
+        point2 = (x,y+h)
+        point3 = (x+w,y)
+        point4 = (x+w,y+h)
+        mid = (x,y-15)
+        rad = 5
+        color = dotC
+        fontColor = (255,255,255)
+        thickness = -1
+        font = cv2.FONT_HERSHEY_COMPLEX
+        fontScale = 0.5
+        cv2.putText(img_raw,'Face', mid,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point1),point1,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point2),point2,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point3),point3,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point4),point4,font,fontScale,fontColor,1)
+        cv2.rectangle(img_raw,(x,y),(x+w,y+h),rectC)
+        cv2.circle(img_raw, point1,rad,color,thickness)
+        cv2.circle(img_raw, point2,rad,color,thickness)
+        cv2.circle(img_raw, point3,rad,color,thickness)
+        cv2.circle(img_raw, point4,rad,color,thickness)
+    return img_raw
 
 def handFaceIntersection(img_raw):
     img_gray = convertToGrey(img_raw)
+    img_reversed = mirrorImage(img_gray)
         
     haar_cascade_face = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
     #haar_cascade_palm = cv2.CascadeClassifier('palm.xml')
@@ -220,10 +289,12 @@ def handFaceIntersection(img_raw):
     face_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 5)
     #palm_rects = haar_cascade_palm.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 4)
     fist_rects = haar_cascade_fist.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 15)
+    fist_rects_rev = haar_cascade_fist.detectMultiScale(img_reversed, scaleFactor = 1.1, minNeighbors = 15)
     
     faceBounds = [(0,0),(0,0)]
     #palmBounds = [(0,0),(0,0),(0,0),(0,0)]
-    fistBounds = [(0,0),(0,0),(0,0),(0,0)]
+    fistBounds = [(0,0),(0,0),(0,0),(0,0)] #can just np.zeros...
+    fistRevBounds = [(0,0),(0,0),(0,0),(0,0)]
     
     intersect = False    
     for(x,y,w,h) in face_rects:
@@ -234,113 +305,23 @@ def handFaceIntersection(img_raw):
     """
     for(x,y,w,h) in fist_rects:
         fistBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
-        
-        
-        
-    faceX = faceBounds[0][0]
-    faceX2 = faceBounds[1][0]
-    faceY = faceBounds[0][1]
-    faceY2 = faceBounds[1][1]
     
+    for(x,y,w,h) in fist_rects_rev:
+        fistRevBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
+        
+    intersect = checkIntersectionAndFill(img_raw,faceBounds,fistBounds, False)
+    intersect = checkIntersectionAndFill(img_raw,faceBounds,fistRevBounds,True)
+    
+    
+    dotC = (0,0,255)
+    rectC = (0,255,0)
+    img_raw = drawBox(img_raw, face_rects, dotC, rectC)
 
-    
-    #check all for points and see if any lie within the face's box
-    if bounded(fistBounds[0], faceBounds[0], faceBounds[1]):
-        intersect = True
-        fB = fistBounds[0]
-        xLength = abs(int(fB[0])-faceX2)
-        yLength = abs(int(fB[1])-faceY2)
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-    elif bounded(fistBounds[1], faceBounds[0], faceBounds[1]):
-        intersect = True
-        fB = fistBounds[1]
-        xLength = -abs(int(fB[0])-faceX)
-        yLength = -abs(int(fB[1])-faceY)
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-    elif bounded(fistBounds[2], faceBounds[0], faceBounds[1]):
-        intersect = True
-        fB = fistBounds[2]
-        xLength = abs(int(fB[0])-faceX2)
-        yLength = -abs(int(fB[1])-faceY)
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-    elif bounded(fistBounds[3], faceBounds[0], faceBounds[1]):
-        intersect = True
-        fB = fistBounds[3]
-        xLength = -abs(int(fB[0])-faceX)
-        yLength = abs(int(fB[1])-faceY2)
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-    
-    
-    """
-    
-    for i in range(0,len(fistBounds)):
-        fistX = fistBounds[i][0]
-        fistY = fistBounds[i][1]
-        
-        fistX2 = fistBounds[0][0] if i == 1 or i == 2 else fistBounds[1][0]
-        fistY2 = fistBounds[0][1] if i == 1 or i == 3 else fistBounds[1][1]
-        
-        xSign = 1 if (fistX - fistX2<0) else -1
-        ySign = 1 if (fistY - fistY2<0) else -1
-
-        #if(fistX<faceX2 and fistX>faceX and fistY>faceY and fistY<faceY2):
-        if(bounded(fistBounds[i],faceBounds[0],faceBounds[1])):
-            intersect = True
-            xLength = abs(fistX-faceX)
-            yLength = abs(fistY-faceY)
-            cv2.rectangle(img_raw,(fistX,fistY),(fistX+(xSign*xLength),fistY+(ySign*yLength)),(0,0,255),-1)
-            break
-    """
-    for(x,y,w,h)in face_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = (0,0,255)
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_raw,'Face', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_raw,(x,y),(x+w,y+h),(0,255,0),2)
-        cv2.circle(img_raw, point1,rad,color,thickness)
-        cv2.circle(img_raw, point2,rad,color,thickness)
-        cv2.circle(img_raw, point3,rad,color,thickness)
-        cv2.circle(img_raw, point4,rad,color,thickness)
-        
-    for(x,y,w,h)in fist_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = (255,0,0)
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_raw,'Fist', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_raw,(x,y),(x+w,y+h),(0,255,255),2)
-        cv2.circle(img_raw, point1,rad,color,thickness)
-        cv2.circle(img_raw, point2,rad,color,thickness)
-        cv2.circle(img_raw, point3,rad,color,thickness)
-        cv2.circle(img_raw, point4,rad,color,thickness)
-        
+    dotCFist = (255,0,0)
+    rectCFist = (0,255,255)
+    img_raw = drawBox(img_raw, fist_rects, dotCFist, rectCFist)
+    img_raw = drawBox(mirrorImage(img_raw), fist_rects_rev, dotCFist, rectCFist)  
+    img_raw = mirrorImage(img_raw) 
     return intersect, img_raw
     
     

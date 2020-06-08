@@ -13,15 +13,9 @@ cap = cv2.VideoCapture(0)
 size = 3
 intensity = 1
 
-def mirrorImage(img):
-    frame = cv2.flip(img,0)
-    frame = cv2.rotate(frame,0)
-    frame = cv2.rotate(frame,0)
-    return frame
-
 while(cap.isOpened()):
     ret, frame = cap.read()
-    frame = mirrorImage(frame)
+    frame = face.mirrorImage(frame)
     intersects, new_img = face.handFaceIntersection(frame)
     frame = new_img
     
