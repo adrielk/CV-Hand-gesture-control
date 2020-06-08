@@ -13,26 +13,20 @@ cap = cv2.VideoCapture(0)
 size = 3
 intensity = 1
 
+def mirrorImage(img):
+    frame = cv2.flip(img,0)
+    frame = cv2.rotate(frame,0)
+    frame = cv2.rotate(frame,0)
+    return frame
+
 while(cap.isOpened()):
     ret, frame = cap.read()
-    frame = cv2.flip(frame,0)
-    frame = cv2.rotate(frame,0)
-    frame = cv2.rotate(frame,0)
+    frame = mirrorImage(frame)
+    intersects, new_img = face.handFaceIntersection(frame)
+    frame = new_img
     
-    frame = face.boxFrame(frame)
-    frame = face.boxHand(frame)
-    frame= face.boxHand2(frame)
-    #frame = face.noise(frame)
-    frame = cv2.resize(frame,None,fx=.5,fy=.5)
     
     """
-    for i in range(0,frame.shape[0]):
-        for k in range(0, frame.shape[1]):
-            frame[i,k] = frame[i,k]+randint(0,200)
-    """
-    if face.handFaceIntersection(frame):
-        print("INTERSECTION")
-    
     if(face.detectHandBox(frame) and face.detectFace(frame)):
         intensity +=0.1
         #frame = face.intensify(frame,intensity)
@@ -43,7 +37,7 @@ while(cap.isOpened()):
     else:
         size = 3
         intensity = 1
-        
+    """
     cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
