@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Haar Cascade xml file source:
+    
 https://github.com/parulnith/Face-Detection-in-Python-using-OpenCV/tree/master/data/haarcascades
 https://github.com/Aravindlivewire/Opencv/blob/master/haarcascade/aGest.xml
+
 @author: Adriel Kim
 """
 from random import randint
@@ -16,7 +18,7 @@ def convertToRGB(image):
 def convertToGrey(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-#PLaces boxes around faces, used for still images only
+#PLaces boxes around faces an displays it, used for still images only
 def boxFaces(img_name):
     img_raw = cv2.imread(img_name)
     img_gray = convertToGrey(img_raw)
@@ -30,8 +32,33 @@ def boxFaces(img_name):
     for(x,y,w,h)in faces_rects:
         cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,255,0),4)
         
-        
     plt.imshow(img_rgb)
+
+#Helper function that draws boxes given coordinates (face_rects) and vertex colors (dotC) and rectangle color (rectC)
+def drawBox(img_raw, face_rects, dotC, rectC, text):
+    for(x,y,w,h)in face_rects:
+        point1 = (x,y)
+        point2 = (x,y+h)
+        point3 = (x+w,y)
+        point4 = (x+w,y+h)
+        mid = (x,y-15)
+        rad = 5
+        color = dotC
+        fontColor = (255,255,255)
+        thickness = -1
+        font = cv2.FONT_HERSHEY_COMPLEX
+        fontScale = 0.5
+        cv2.putText(img_raw,text, mid,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point1),point1,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point2),point2,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point3),point3,font,fontScale,fontColor,1)
+        cv2.putText(img_raw,str(point4),point4,font,fontScale,fontColor,1)
+        cv2.rectangle(img_raw,(x,y),(x+w,y+h),rectC)
+        cv2.circle(img_raw, point1,rad,color,thickness)
+        cv2.circle(img_raw, point2,rad,color,thickness)
+        cv2.circle(img_raw, point3,rad,color,thickness)
+        cv2.circle(img_raw, point4,rad,color,thickness)
+    return img_raw
    
 #Places boxs around faces, used for frames of video capture
 def boxFrame(img_raw):
@@ -39,32 +66,10 @@ def boxFrame(img_raw):
     img_rgb = img_raw
     haar_cascade_face = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
     faces_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1,minNeighbors = 5)
-    #print("Faces found: ", len(faces_rects))
-   # print(faces_rects)
+    dotC = (0,0,255)
+    rectC = (0,255,0)
+    drawBox(img_rgb, faces_rects, dotC, rectC,'Face')
     
-    for(x,y,w,h)in faces_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = (0,0,255)
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_rgb,'Face', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,255,0),2)
-        cv2.circle(img_rgb, point1,rad,color,thickness)
-        cv2.circle(img_rgb, point2,rad,color,thickness)
-        cv2.circle(img_rgb, point3,rad,color,thickness)
-        cv2.circle(img_rgb, point4,rad,color,thickness)
-        
     return img_rgb
 
 def boxSmile(img_raw):
@@ -105,29 +110,9 @@ def boxHand(img_raw):
     img_rgb = img_raw
     haar_cascade_face = cv2.CascadeClassifier('palm.xml')
     faces_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 4)
-
-    for(x,y,w,h)in faces_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = (0,255,0)
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_rgb,'Palm', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,0,255),2)
-        cv2.circle(img_rgb, point1,rad,color,thickness)
-        cv2.circle(img_rgb, point2,rad,color,thickness)
-        cv2.circle(img_rgb, point3,rad,color,thickness)
-        cv2.circle(img_rgb, point4,rad,color,thickness)
+    dotC = (0,0,255)
+    rectC = (0,255,0)
+    drawBox(img_rgb, faces_rects, dotC, rectC,'Palm')
     
     return img_rgb
 
@@ -136,32 +121,12 @@ def boxHand2(img_raw):
     img_rgb = img_raw
     haar_cascade_face = cv2.CascadeClassifier('aGest.xml')
     faces_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 10)
-
-    for(x,y,w,h)in faces_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = (255,0,0)
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_rgb,'Fist', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_rgb,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,255,255),2)
-        cv2.circle(img_rgb, point1,rad,color,thickness)
-        cv2.circle(img_rgb, point2,rad,color,thickness)
-        cv2.circle(img_rgb, point3,rad,color,thickness)
-        cv2.circle(img_rgb, point4,rad,color,thickness)
+    dotC = (255,0,0)
+    rectC = (0,255,255)
+    drawBox(img_rgb, faces_rects, dotC, rectC)
         
-    
     return img_rgb
+
 #Frontal facing fist detection
 def detectHandBox(img_raw):
     img_gray = convertToGrey(img_raw)
@@ -169,6 +134,7 @@ def detectHandBox(img_raw):
     faces_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 10)
     
     return (len(faces_rects)>0)#True means hand, False means no hand
+
 #Palm detection
 def detectHandBox2(img_raw):
     img_gray = convertToGrey(img_raw)
@@ -177,6 +143,7 @@ def detectHandBox2(img_raw):
 
     return (len(faces_rects)>0)#True means hand, False means no hand
 
+#Detects presence of face without drawing box
 def detectFace(img_raw):
     img_gray = convertToGrey(img_raw)
     haar_cascade_face = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
@@ -184,11 +151,10 @@ def detectFace(img_raw):
 
     return (len(faces_rects)>0)#True means face, False means no face
 
+#Checks if point (bounded) is contained within a rectangle (boundary1 and boundary2)
 def bounded(bounded, boundary1, boundary2):
-    
     boundedX = bounded[0]
     boundedY = bounded[1]
-    
     boundary1X = boundary1[0]
     boundary2X = boundary2[0]
     boundary1Y = boundary1[1]
@@ -198,7 +164,8 @@ def bounded(bounded, boundary1, boundary2):
         return True
     
     return False
-        
+       
+#Creates a rectangle which represents the area of intersection of two rectangles 
 def fillIntersection(img, origin, offsets):
     originX = int(origin[0])
     originY = int(origin[1])
@@ -207,44 +174,6 @@ def fillIntersection(img, origin, offsets):
     
     cv2.rectangle(img,origin,(originX+offsetX,originY+offsetY),(0,0,255), -1)
     return img
-    
-def checkIntersectionAndFill(img_raw,faceBounds,fistBounds, rev):
-    
-    faceX = faceBounds[0][0]
-    faceX2 = faceBounds[1][0]
-    faceY = faceBounds[0][1]
-    faceY2 = faceBounds[1][1]
-    rev = -1 if rev == True else 1
-    
-    if bounded(fistBounds[0], faceBounds[0], faceBounds[1]):
-        fB = fistBounds[0]
-        xLength = abs(int(fB[0])-faceX2)*rev
-        yLength = abs(int(fB[1])-faceY2)*rev
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-        return True
-    elif bounded(fistBounds[1], faceBounds[0], faceBounds[1]):
-        fB = fistBounds[1]
-        xLength = -abs(int(fB[0])-faceX)*rev
-        yLength = -abs(int(fB[1])-faceY)*rev
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-        return True
-    elif bounded(fistBounds[2], faceBounds[0], faceBounds[1]):
-        fB = fistBounds[2]
-        xLength = abs(int(fB[0])-faceX2)*rev
-        yLength = -abs(int(fB[1])-faceY)*rev
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-        return True
-    elif bounded(fistBounds[3], faceBounds[0], faceBounds[1]):
-        fB = fistBounds[3]
-        xLength = -abs(int(fB[0])-faceX)*rev
-        yLength = abs(int(fB[1])-faceY2)*rev
-        offsets = (xLength, yLength)
-        img_raw = fillIntersection(img_raw,fB, offsets)
-        return True
-    return False
 
 def mirrorImage(img):
     frame = cv2.flip(img,0)
@@ -252,32 +181,48 @@ def mirrorImage(img):
     frame = cv2.rotate(frame,0)
     return frame
 
+def checkIntersectionAndFill(img_raw,faceBounds,fistBounds, rev):
+    
+    faceX = faceBounds[0][0]
+    faceX2 = faceBounds[1][0]
+    faceY = faceBounds[0][1]
+    faceY2 = faceBounds[1][1]
+    rev = -1 if rev == True else 1
+    intersects = False
+    
+    if bounded(fistBounds[0], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[0]
+        xLength = abs(int(fB[0])-faceX2)*rev
+        yLength = abs(int(fB[1])-faceY2)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[1], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[1]
+        xLength = -abs(int(fB[0])-faceX)*rev
+        yLength = -abs(int(fB[1])-faceY)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[2], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[2]
+        xLength = abs(int(fB[0])-faceX2)*rev
+        yLength = -abs(int(fB[1])-faceY)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[3], faceBounds[0], faceBounds[1]):
+        fB = fistBounds[3]
+        xLength = -abs(int(fB[0])-faceX)*rev
+        yLength = abs(int(fB[1])-faceY2)*rev
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    
+    return intersects
 
-def drawBox(img_raw, face_rects, dotC, rectC):
-    for(x,y,w,h)in face_rects:
-        point1 = (x,y)
-        point2 = (x,y+h)
-        point3 = (x+w,y)
-        point4 = (x+w,y+h)
-        mid = (x,y-15)
-        rad = 5
-        color = dotC
-        fontColor = (255,255,255)
-        thickness = -1
-        font = cv2.FONT_HERSHEY_COMPLEX
-        fontScale = 0.5
-        cv2.putText(img_raw,'Face', mid,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point1),point1,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point2),point2,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point3),point3,font,fontScale,fontColor,1)
-        cv2.putText(img_raw,str(point4),point4,font,fontScale,fontColor,1)
-        cv2.rectangle(img_raw,(x,y),(x+w,y+h),rectC)
-        cv2.circle(img_raw, point1,rad,color,thickness)
-        cv2.circle(img_raw, point2,rad,color,thickness)
-        cv2.circle(img_raw, point3,rad,color,thickness)
-        cv2.circle(img_raw, point4,rad,color,thickness)
-    return img_raw
 
+#Checks for intersection between hand and face. Fills in intersection plane
 def handFaceIntersection(img_raw):
     img_gray = convertToGrey(img_raw)
     img_reversed = mirrorImage(img_gray)
@@ -296,7 +241,6 @@ def handFaceIntersection(img_raw):
     fistBounds = [(0,0),(0,0),(0,0),(0,0)] #can just np.zeros...
     fistRevBounds = [(0,0),(0,0),(0,0),(0,0)]
     
-    intersect = False    
     for(x,y,w,h) in face_rects:
         faceBounds = [(x,y),(x+w,y+h)]
     """   
@@ -310,21 +254,26 @@ def handFaceIntersection(img_raw):
         fistRevBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
         
     intersect = checkIntersectionAndFill(img_raw,faceBounds,fistBounds, False)
-    intersect = checkIntersectionAndFill(img_raw,faceBounds,fistRevBounds,True)
-    
+    #intersect = checkIntersectionAndFill(img_raw,faceBounds,fistRevBounds,True)
     
     dotC = (0,0,255)
     rectC = (0,255,0)
-    img_raw = drawBox(img_raw, face_rects, dotC, rectC)
+    img_raw = drawBox(img_raw, face_rects, dotC, rectC,'Face')
 
     dotCFist = (255,0,0)
     rectCFist = (0,255,255)
-    img_raw = drawBox(img_raw, fist_rects, dotCFist, rectCFist)
-    img_raw = drawBox(mirrorImage(img_raw), fist_rects_rev, dotCFist, rectCFist)  
+    img_raw = drawBox(img_raw, fist_rects, dotCFist, rectCFist,'Fist')
+    img_raw = drawBox(mirrorImage(img_raw), fist_rects_rev, dotCFist, rectCFist,'Fist')  
     img_raw = mirrorImage(img_raw) 
+    
     return intersect, img_raw
     
-    
+'''
+Image convolution 
+'''
+
+def applyFilter(img, kernel):
+    return cv2.filter2D(img, -1, kernel)
 #Smoothing convolution filter, applies average blur
 def smoothing(img_raw,size):
     kernel = (np.ones((size,size),np.float32)/(size*size)) #averaging kernel
@@ -344,13 +293,34 @@ def sharpen(img_raw):
     img_smooth = cv2.filter2D(img_raw,-1,npKernel)
     return img_smooth
 
+#pollutes image with random noise
 def noise(img_raw):
     noiseKernel = (np.ones((3,3),np.float32))+randint(0,100)
     img_noisy = cv2.filter2D(img_raw,-1, noiseKernel)
     return img_noisy
-"""
-plt.imshow(img_rgb)
-font = cv2.FONT_HERSHEY_SIMPLEX
-text = cv2.putText(img_rgb,'hello',(100,300), font, 1,(255,255,255),2,cv2.LINE_AA)
-plt.imshow(text)
-"""
+
+def emboss(img_raw):
+    eKernel = np.array([-2,-1,0,-1,1,1,0,1,2])
+    return applyFilter(img_raw, eKernel)
+
+def bottomSobel(img_raw):
+    kernel = np.array([-1,-2,-1,0,0,0,1,2,1])
+    return applyFilter(img_raw, kernel)
+
+def outline(img_raw):
+    kernel = np.array([-1,-1,-1,-1,8,-1,-1,-1,-1])
+    return applyFilter(img_raw, kernel)
+
+def edgeDetect(img_raw):
+    kernel1 = np.array([1,0,-1,2,0,-2,1,0,-1])
+    kernel2 = np.array([1,2,1,0,0,0,-1,-2,-1])
+    return applyFilter(applyFilter(img_raw,kernel1),kernel2)
+
+def applyHue(img_raw):
+    lower_red = np.array([10,50,50])
+    upper_red = np.array([130,255,255])
+    img_raw = cv2.cvtColor(img_raw,cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(img_raw, lower_red, upper_red)
+    res = cv2.bitwise_and(img_raw,img_raw, mask= mask)
+    return img_raw
+
