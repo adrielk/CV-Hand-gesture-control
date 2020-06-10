@@ -181,51 +181,91 @@ def mirrorImage(img):
     frame = cv2.rotate(frame,0)
     return frame
 
-def checkIntersectionAndFill(img_raw,faceBounds,fistBounds, rev):
-    
+def checkIntersectionAndFill(img_raw,faceBounds,fistBounds):
+    #[(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
     faceX = faceBounds[0][0]
     faceX2 = faceBounds[1][0]
     faceY = faceBounds[0][1]
     faceY2 = faceBounds[1][1]
-    rev = -1 if rev == True else 1
+    #rev = -1 if rev == True else 1
     intersects = False
     
     if bounded(fistBounds[0], faceBounds[0], faceBounds[1]):
         fB = fistBounds[0]
-        xLength = abs(int(fB[0])-faceX2)*rev
-        yLength = abs(int(fB[1])-faceY2)*rev
+        xLength = abs(int(fB[0])-faceX2)
+        yLength = abs(int(fB[1])-faceY2)
         offsets = (xLength, yLength)
         img_raw = fillIntersection(img_raw,fB, offsets)
         intersects = True
     elif bounded(fistBounds[1], faceBounds[0], faceBounds[1]):
         fB = fistBounds[1]
-        xLength = -abs(int(fB[0])-faceX)*rev
-        yLength = -abs(int(fB[1])-faceY)*rev
+        xLength = -abs(int(fB[0])-faceX) 
+        yLength = -abs(int(fB[1])-faceY)
         offsets = (xLength, yLength)
         img_raw = fillIntersection(img_raw,fB, offsets)
         intersects = True
     elif bounded(fistBounds[2], faceBounds[0], faceBounds[1]):
         fB = fistBounds[2]
-        xLength = abs(int(fB[0])-faceX2)*rev
-        yLength = -abs(int(fB[1])-faceY)*rev
+        xLength = abs(int(fB[0])-faceX2)
+        yLength = -abs(int(fB[1])-faceY)
         offsets = (xLength, yLength)
         img_raw = fillIntersection(img_raw,fB, offsets)
         intersects = True
     elif bounded(fistBounds[3], faceBounds[0], faceBounds[1]):
         fB = fistBounds[3]
-        xLength = -abs(int(fB[0])-faceX)*rev
-        yLength = abs(int(fB[1])-faceY2)*rev
+        xLength = -abs(int(fB[0])-faceX)
+        yLength = abs(int(fB[1])-faceY2)
         offsets = (xLength, yLength)
         img_raw = fillIntersection(img_raw,fB, offsets)
         intersects = True
     
     return intersects
-
+"""
+def checkIntersectionAndFillReverse(img_raw,faceBounds,revFaceBounds,fistBounds):
+    faceX = faceBounds[0][0]
+    faceX2 = faceBounds[1][0]
+    faceY = faceBounds[0][1]
+    faceY2 = faceBounds[1][1]
+    
+    faceXRev = revFaceBounds[0][0]
+    faceX2Rev = revFaceBounds[1][0]
+    faceYRev = revFaceBounds[0][1]
+    faceY2Rev = revFaceBounds[1][1]
+    
+    if bounded(fistBounds[0], revFaceBounds[0], revFaceBounds[1]):
+        fB = fistBounds[0]
+        xLength = abs(int(fB[0])-faceX2)
+        yLength = abs(int(fB[1])-faceY2)
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[1], revFaceBounds[0], revFaceBounds[1]):
+        fB = fistBounds[1]
+        xLength = -abs(int(fB[0])-faceX) 
+        yLength = -abs(int(fB[1])-faceY)
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[2], revFaceBounds[0], revFaceBounds[1]):
+        fB = fistBounds[2]
+        xLength = abs(int(fB[0])-faceX2)
+        yLength = -abs(int(fB[1])-faceY)
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+    elif bounded(fistBounds[3], revFaceBounds[0], revFaceBounds[1]):
+        fB = fistBounds[3]
+        xLength = -abs(int(fB[0])-faceX)
+        yLength = abs(int(fB[1])-faceY2)
+        offsets = (xLength, yLength)
+        img_raw = fillIntersection(img_raw,fB, offsets)
+        intersects = True
+"""
 
 #Checks for intersection between hand and face. Fills in intersection plane
 def handFaceIntersection(img_raw):
     img_gray = convertToGrey(img_raw)
-    img_reversed = mirrorImage(img_gray)
+    #img_reversed = mirrorImage(img_gray)
         
     haar_cascade_face = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
     #haar_cascade_palm = cv2.CascadeClassifier('palm.xml')
@@ -233,16 +273,17 @@ def handFaceIntersection(img_raw):
     
     face_rects = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 5)
     #palm_rects = haar_cascade_palm.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 4)
-    fist_rects = haar_cascade_fist.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 15)
-    fist_rects_rev = haar_cascade_fist.detectMultiScale(img_reversed, scaleFactor = 1.1, minNeighbors = 15)
+    fist_rects = haar_cascade_fist.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 10)
     
     faceBounds = [(0,0),(0,0)]
     #palmBounds = [(0,0),(0,0),(0,0),(0,0)]
     fistBounds = [(0,0),(0,0),(0,0),(0,0)] #can just np.zeros...
     fistRevBounds = [(0,0),(0,0),(0,0),(0,0)]
+    faceRevBounds = [(0,0),(0,0)]
     
     for(x,y,w,h) in face_rects:
         faceBounds = [(x,y),(x+w,y+h)]
+        
     """   
     for(x,y,w,h) in palm_rects:
         palmBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
@@ -250,11 +291,8 @@ def handFaceIntersection(img_raw):
     for(x,y,w,h) in fist_rects:
         fistBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
     
-    for(x,y,w,h) in fist_rects_rev:
-        fistRevBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
         
-    intersect = checkIntersectionAndFill(img_raw,faceBounds,fistBounds, False)
-    #intersect = checkIntersectionAndFill(img_raw,faceBounds,fistRevBounds,True)
+    intersect = checkIntersectionAndFill(img_raw,faceBounds,fistBounds)
     
     dotC = (0,0,255)
     rectC = (0,255,0)
@@ -263,10 +301,22 @@ def handFaceIntersection(img_raw):
     dotCFist = (255,0,0)
     rectCFist = (0,255,255)
     img_raw = drawBox(img_raw, fist_rects, dotCFist, rectCFist,'Fist')
-    img_raw = drawBox(mirrorImage(img_raw), fist_rects_rev, dotCFist, rectCFist,'Fist')  
+    
+    
+    img_reversed = mirrorImage(img_gray)#mirrorImage(img_raw)
+    fist_rects_rev = haar_cascade_fist.detectMultiScale(img_reversed, scaleFactor = 1.1, minNeighbors = 10)
+    face_rects_rev = haar_cascade_face.detectMultiScale(img_reversed, scaleFactor = 1.1, minNeighbors = 5)
+    
+    for(x,y,w,h) in fist_rects_rev:
+        fistRevBounds = [(x,y),(x+w,y+h),(x,y+h),(x+w,y)]
+    for(x,y,w,h) in face_rects_rev:
+        faceRevBounds = [(x,y),(x+w,y+h)]
+    img_raw = mirrorImage(img_raw)    
+    intersect2 = checkIntersectionAndFill(img_raw,faceRevBounds,fistRevBounds)
+    img_raw = drawBox(img_raw, fist_rects_rev, dotCFist, rectCFist,'Fist')  
     img_raw = mirrorImage(img_raw) 
     
-    return intersect, img_raw
+    return (intersect or intersect2), img_raw
     
 '''
 Image convolution 
@@ -323,4 +373,5 @@ def applyHue(img_raw):
     mask = cv2.inRange(img_raw, lower_red, upper_red)
     res = cv2.bitwise_and(img_raw,img_raw, mask= mask)
     return img_raw
+
 
