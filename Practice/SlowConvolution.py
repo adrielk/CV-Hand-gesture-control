@@ -2,7 +2,9 @@
 """
 Created on Sat Jun 20 23:22:35 2020
 
-@author: thead
+This is an implementation of the convolution algorithm, non-vectorized.
+
+@author: Adriel Kim
 """
 
 import cv2
